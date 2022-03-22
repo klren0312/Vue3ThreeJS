@@ -95,12 +95,12 @@ export default {
       }
       const onError = (event: ErrorEvent) => {}
       const mtlLoader = new MTLLoader()
-      mtlLoader.setPath(location.pathname + '/objs/')
+      mtlLoader.setPath('/objs/')
       mtlLoader.load('fj.mtl', materials => {
         materials.preload()
         const objLoader = new OBJLoader()
         objLoader.setMaterials(materials)
-        objLoader.setPath(location.pathname + '/objs/')
+        objLoader.setPath('/objs/')
         objLoader.load('fj.obj', object => {
           object.position.x = 0
           object.position.z = 0
