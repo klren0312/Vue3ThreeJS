@@ -1,4 +1,4 @@
-: number<template>
+<template>
   <div id="webgl"></div>
 </template>
 <script lang="ts">
@@ -75,7 +75,7 @@ export default {
     const addLights = () => {
       // 环境光
       const ambient = new THREE.AmbientLight(0xffffff);
-      scene.add(ambient); //将环境光添加到场景中
+      scene.add(ambient); // 将环境光添加到场景中
 
       // 户外光照效果
       const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff);
@@ -95,12 +95,12 @@ export default {
       }
       const onError = (event: ErrorEvent) => {}
       const mtlLoader = new MTLLoader()
-      mtlLoader.setPath('/objs/')
+      mtlLoader.setPath(location.pathname + '/objs/')
       mtlLoader.load('fj.mtl', materials => {
         materials.preload()
         const objLoader = new OBJLoader()
         objLoader.setMaterials(materials)
-        objLoader.setPath('/objs/')
+        objLoader.setPath(location.pathname + '/objs/')
         objLoader.load('fj.obj', object => {
           object.position.x = 0
           object.position.z = 0
