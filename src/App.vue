@@ -6,7 +6,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import * as THREE from 'three'
-import { onMounted } from 'vue'
+import { onMounted, Ref } from 'vue'
 
 export default {
   setup() {
@@ -89,27 +89,73 @@ export default {
       scene.add(directionalLight);
     }
 
-    const addObjModel = () => {
-      const onProgress = (xhr: ProgressEvent<EventTarget>) => {
-        console.log(xhr)
-      }
-      const onError = (event: ErrorEvent) => {}
-      const mtlLoader = new MTLLoader()
-      mtlLoader.setPath('/objs/')
-      mtlLoader.load('fj.mtl', materials => {
-        materials.preload()
-        const objLoader = new OBJLoader()
-        objLoader.setMaterials(materials)
-        objLoader.setPath('/objs/')
-        objLoader.load('fj.obj', object => {
-          object.position.x = 0
-          object.position.z = 0
-          object.position.y = 0
-          object.scale.set(0.2, 0.2, 0.2)
-          object.name = 'plane1'
-          scene.add(object)
-        }, onProgress, onError)
+    // 加载过程处理
+    const onLoadProgess = (xhr: ProgressEvent<EventTarget>) => {
+      console.log(xhr)
+    }
+    // 加载失败处理
+    const onLoadError = (event: ErrorEvent) => {}
+    const mtlLoader = new MTLLoader()
+    mtlLoader.setPath('/objs/')
+
+    // 添加模型
+    const addModel = (fileName: string, instanceName: string, x: number, y: number, z: number, scale: number = 0.01, instance?: THREE.Group | null | undefined) => {
+      mtlLoader.load(fileName + '.mtl', (materials) => {
+				materials.preload()
+				var objLoader = new OBJLoader()
+				objLoader.setMaterials(materials)
+				objLoader.setPath('objs/')
+				objLoader.load(fileName + '.obj', (object) => {
+					object.position.x = x
+					object.rotation.y = y
+          object.position.z = z
+					object.scale.set(scale, scale, scale)
+					object.name = instanceName
+          if (instance) {
+            instance = object
+          }
+					scene.add(object)
+				}, onLoadProgess, onLoadError);
+			})
+    }
+    let animatePlane: THREE.Group
+    let bridgeHasColor: THREE.Group
+    const initModel = () => {
+      // 地面
+      addModel('ground', 'ground', -50, 0, -15, 0.05)
+      // 最前端广场
+      addModel('frontGround', 'frontGround', -50, 0, -15, 0.05)
+      // 候机1
+      addModel('wait1', 'wait1', -50, 0, -15, 0.05)
+      // 候机2
+      addModel('wait2', 'wait2', -50, 0, -15, 0.05)
+      // 候机3
+      addModel('wait3', 'wait3', -50, 0, -15, 0.05)
+      // 登机桥
+      var bridgeArr = [
+				{x:-50, z:-15, y: 0},
+				{x:-56, z:-15, y: 0},
+				{x:-48, z:-15, y: 0},
+				{x:-52.8, z:-15, y: 0},
+				{x:-70.5, z:-15, y: 0},
+				{x:-65.1, z:-15, y: 0},
+				{x:-80.5, z:-15, y: 0},
+				{x:-82.5, z:-15, y: 0},
+				{x:-85, z:-15, y: 0},
+				{x:-88, z:-15, y: 0},
+				{x:-65.1, z:-1, y: 0}
+			]
+      bridgeArr.forEach((point, i) => {
+        addModel('bridge1', 'bridge' + i + 1, point.x, point.y, point.z, 0.05)
       })
+      // 登机桥带拐
+      addModel('bridge2', 'bridge2-1', -50, 0, -15, 0.05)
+      // 飞机
+      addModel('fj', 'plane1', 28.5, 119.6, -3, 0.01)
+      addModel('fj', 'plane2', 24.5, 119.6, -3, 0.01)
+      addModel('fj', 'plane3', 17, 119.6, -3, 0.01)
+      addModel('fj', 'plane4', 9, 119.6, -3, 0.01)
+      addModel('fj', 'animatePlane', 35, 4.695, 21.25, 0.02, animatePlane)
     }
 
     const init = () => {
@@ -118,7 +164,7 @@ export default {
       addRenderer()
       addControl()
       addLights()
-      addObjModel()
+      initModel()
     }
 
     onMounted(() => {
