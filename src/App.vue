@@ -36,7 +36,7 @@ export default {
     // 创建相机
     const addCamera = () => {
       camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 5000)
-      camera.position.set(0, 100, 0)
+      camera.position.set(100, 100, 100)
       camera.lookAt(scene.position)
       scene.add(camera)
     }
