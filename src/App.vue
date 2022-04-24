@@ -10,19 +10,8 @@ import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRe
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import * as THREE from 'three'
-import { onMounted, Ref } from 'vue'
-
-interface Position {
-  x: number
-  y: number
-  z: number
-}
-
-interface TextConfig {
-  value: string
-  fontColor: string
-  bgColor: string
-}
+import { onMounted } from 'vue'
+import { ObjsData, Position, Rotation, TextConfig } from './data/objs'
 
 export default {
   setup() {
@@ -46,8 +35,8 @@ export default {
 
     // 创建相机
     const addCamera = () => {
-      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000)
-      camera.position.set(100, 100, 100)
+      camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 5000)
+      camera.position.set(0, 100, 0)
       camera.lookAt(scene.position)
       scene.add(camera)
     }
@@ -127,16 +116,15 @@ export default {
     mtlLoader.setPath('/objs/')
 
     // 添加模型
-    const addModel = (fileName: string, instanceName: string, position: Position, scale: number = 0.01) => {
+    const addModel = (fileName: string, instanceName: string, position: Position, scale: number = 0.01, rotation?: Rotation) => {
       mtlLoader.load(fileName + '.mtl', (materials) => {
 				materials.preload()
 				var objLoader = new OBJLoader()
 				objLoader.setMaterials(materials)
 				objLoader.setPath('objs/')
 				objLoader.load(fileName + '.obj', (object) => {
-					object.position.x = position.x
-					object.position.y = position.y
-          object.position.z = position.z
+					object.position.set(position.x,  position.y, position.z)
+          object.rotation.set(rotation?.x ?? 0, rotation?.y ?? 0, rotation?.z ?? 0)
 					object.scale.set(scale, scale, scale)
 					object.name = instanceName
 					scene.add(object)
@@ -154,39 +142,11 @@ export default {
     }
 
     const initModel = () => {
-      const renderArr = [
-        {type: 'model', fileName: 'ground', name: 'ground', position: {x: -50, y: 0, z: -15}, scale: 0.05},
-        {type: 'model', fileName: 'frontGround', name: 'frontGround', position: {x: -50, y: 0, z: -15}, scale: 0.05},
-        {type: 'model', fileName: 'wait1', name: 'wait1', position: {x: -50, y: 0, z: -15}, scale: 0.05},
-        {type: 'model', fileName: 'wait2', name: 'wait2', position: {x: -50, y: 0, z: -15}, scale: 0.05},
-        {type: 'model', fileName: 'wait3', name: 'wait3', position: {x: -50, y: 0, z: -15}, scale: 0.05},
-        {type: 'model', fileName: 'bridge1', name: 'bridge1', position: {x:-50, y: 0, z:-15}, scale: 0.05},
-        {type: 'model', fileName: 'bridge1', name: 'bridge2', position: {x:-56, y: 0, z:-15}, scale: 0.05},
-        {type: 'model', fileName: 'bridge1', name: 'bridge3', position: {x:-48, y: 0, z:-15}, scale: 0.05},
-        {type: 'model', fileName: 'bridge1', name: 'bridge4', position: {x:-52.8, y: 0, z:-15}, scale: 0.05},
-        {type: 'model', fileName: 'bridge1', name: 'bridge5', position: {x:-70.5, y: 0, z:-15}, scale: 0.05},
-        {type: 'model', fileName: 'bridge1', name: 'bridge6', position: {x:-65.1, y: 0, z:-15}, scale: 0.05},
-        {type: 'model', fileName: 'bridge1', name: 'bridge7', position: {x:-80.5, y: 0, z:-15}, scale: 0.05},
-        {type: 'model', fileName: 'bridge1', name: 'bridge8', position: {x:-82.5, y: 0, z:-15}, scale: 0.05},
-        {type: 'model', fileName: 'bridge1', name: 'bridge9', position: {x:-85, y: 0, z:-15}, scale: 0.05},
-        {type: 'model', fileName: 'bridge1', name: 'bridge10', position: {x:-88, y: 0, z:-15}, scale: 0.05},
-        {type: 'model', fileName: 'bridge2', name: 'bridge2-1', position:{ x: -48, y: 0, z: -15}, scale: 0.05},
-        {type: 'model', fileName: 'fj', name: 'plane1', position: { x: 28.5, y: 119.6, z: -3}, scale: 0.01},
-        {type: 'model', fileName: 'fj', name: 'plane2', position: { x: 24.5, y: 119.6, z: -3}, scale: 0.01},
-        {type: 'model', fileName: 'fj', name: 'plane3', position: { x: 17, y: 119.6, z: -3}, scale: 0.01},
-        {type: 'model', fileName: 'fj', name: 'plane4', position: { x: 9, y:119.6, z:-3}, scale: 0.01},
-        {type: 'model', fileName: 'fj', name: 'animatePlane', position: { x: 35, y: 4.695, z: 21.25}, scale: 0.02},
-        // 飞机故障提示
-        {type: 'tip', name: 'planeErrorTip', textConfig: { value: '正在检修中...', bgColor: '#ff0000', fontColor: '#ffffff'}, position: { x: 28.5, y: 1.5, z: -3}},
-        // 飞机延误提示
-        {type: 'tip', name: 'putoffTip', textConfig: { value: '晚点 00:40', bgColor: '#ff0000', fontColor: '#ffffff'}, position: { x: 9, y: 1.5, z: -3}},
-        // 登机桥故障提示
-        {type: 'tip', name: 'bridgeErrorTip', textConfig: { value: '机械故障', bgColor: '#ff0000', fontColor: '#ffffff'}, position: { x: 13.8, y: 2, z: 4}}
-      ]
+      const renderArr = ObjsData
       renderArr.forEach(info => {
         switch(info.type) {
           case 'model':
-            addModel(<string>info.fileName, info.name, info.position, info.scale)
+            addModel(<string>info.fileName, info.name, info.position, info.scale, info?.rotation)
             break
           case 'tip':
             addTips(info.name, <TextConfig>info.textConfig, info.position)
