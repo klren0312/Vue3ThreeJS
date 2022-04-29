@@ -1,32 +1,3 @@
-export interface Position {
-  x: number
-  y: number
-  z: number
-}
-
-export interface Rotation {
-  x: number
-  y: number
-  z: number
-}
-
-export interface TextConfig {
-  value: string
-  fontColor: string
-  bgColor: string
-}
-
-
-export interface ModelConfig {
-  type: string
-  fileName?: string
-  name: string
-  position: Position
-  scale?: number
-  rotation?: Rotation
-  textConfig?: TextConfig
-}
-
 export const ObjsData: ModelConfig[] = [
   {type: 'model', fileName: 'ground', name: 'ground', position: {x: -50, y: 0, z: -15}, scale: 0.05},
   {type: 'model', fileName: 'frontGround', name: 'frontGround', position: {x: -50, y: 0, z: -15}, scale: 0.05},

@@ -11,7 +11,7 @@ import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import * as THREE from 'three'
 import { onMounted } from 'vue'
-import { ObjsData, Position, Rotation, TextConfig } from '/@/data/objs'
+import { ObjsData } from '/@/data/objs'
 
 export default {
   setup() {

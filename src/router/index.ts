@@ -8,10 +8,15 @@ const basicRoutes: RouteRecordRaw[] = [
     name: 'Index',
     component: () => import('/@/views/Airport.vue')
   },
+  // {
+  //   path: '/ar',
+  //   name: 'arPage',
+  //   component: () => import('/@/views/AR.vue')
+  // },
   {
-    path: '/ar',
-    name: 'arPage',
-    component: () => import('/@/views/AR.vue')
+    path: '/custom',
+    name: 'custom',
+    component: () => import('/@/views/Custom.vue')
   }
 ]
 
