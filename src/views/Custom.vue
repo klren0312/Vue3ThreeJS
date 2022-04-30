@@ -9,6 +9,7 @@ import * as THREE from 'three'
 import { onMounted } from 'vue';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { CustomObjsData } from '/@/data/customObjs'
+import { gsap } from 'gsap'
 
 let scene: THREE.Scene
 let camera: THREE.Camera
@@ -30,8 +31,8 @@ const addScene = () => {
 
 // 创建相机
 const addCamera = () => {
-  camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 0.1, 5000)
-  camera.position.set(0, 500, 0)
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000)
+  camera.position.set(-70, 10, 50)
   camera.lookAt(scene.position)
   scene.add(camera)
 }
@@ -75,6 +76,12 @@ const animate = () => {
 
 const initAnimate = () => {
   renderer.render(scene, camera)
+  if (camera.position.x < 300) {
+    gsap.to(
+      camera.position,
+      {x: camera.position.x + 5, y: 10, z: 50 } //需要移动的距离
+    )
+  }
   requestAnimationFrame(initAnimate)
 }
 
@@ -89,22 +96,22 @@ const addBox = (config: BoxConfig, position: Position) => {
 }
 
 // 球
-const addSphere = (config: SphereConfig, position: Position) => {
-  const geometry = new THREE.SphereGeometry(config.radius, config.widthSegments, config.heightSegments)
-  const material = new THREE.MeshBasicMaterial({ color: config.color })
-  const object = new THREE.Mesh( geometry, material )
-  object.position.set(position.x, position.y, position.z)
-  scene.add(object)
-}
+// const addSphere = (config: SphereConfig, position: Position) => {
+//   const geometry = new THREE.SphereGeometry(config.radius, config.widthSegments, config.heightSegments)
+//   const material = new THREE.MeshBasicMaterial({ color: config.color })
+//   const object = new THREE.Mesh( geometry, material )
+//   object.position.set(position.x, position.y, position.z)
+//   scene.add(object)
+// }
 
 // 圆柱
-const addCylinder = (config: CylinderConfig, position: Position) => {
-  const geometry = new THREE.CylinderGeometry(config.radiusTop, config.radiusBottom, config.height, config.radialSegments)
-  const material = new THREE.MeshBasicMaterial({ color: new THREE.Color( config.color ) })
-  const object = new THREE.Mesh( geometry, material )
-  object.position.set(position.x, position.y, position.z)
-  scene.add(object)
-}
+// const addCylinder = (config: CylinderConfig, position: Position) => {
+//   const geometry = new THREE.CylinderGeometry(config.radiusTop, config.radiusBottom, config.height, config.radialSegments)
+//   const material = new THREE.MeshBasicMaterial({ color: new THREE.Color( config.color ) })
+//   const object = new THREE.Mesh( geometry, material )
+//   object.position.set(position.x, position.y, position.z)
+//   scene.add(object)
+// }
 
 // 放置模型
 const addModel = () => {

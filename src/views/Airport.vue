@@ -111,7 +111,7 @@ export default {
       console.log(xhr)
     }
     // 加载失败处理
-    const onLoadError = (event: ErrorEvent) => {}
+    const onLoadError = () => {}
     const mtlLoader = new MTLLoader()
     mtlLoader.setPath('/objs/')
 
