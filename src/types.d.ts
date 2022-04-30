@@ -20,17 +20,6 @@ declare global {
     fontColor: string
     bgColor: string
   }
-  
-  
-  interface ModelConfig {
-    type: string
-    fileName?: string
-    name: string
-    position: Position
-    scale?: number
-    rotation?: Rotation
-    textConfig?: TextConfig
-  }
 
   interface BoxConfig {
     width: number

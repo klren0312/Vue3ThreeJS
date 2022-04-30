@@ -8,6 +8,7 @@
 import * as THREE from 'three'
 import { onMounted } from 'vue';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { CustomObjsData } from '/@/data/customObjs'
 
 let scene: THREE.Scene
 let camera: THREE.Camera
@@ -105,6 +106,13 @@ const addCylinder = (config: CylinderConfig, position: Position) => {
   scene.add(object)
 }
 
+// 放置模型
+const addModel = () => {
+  CustomObjsData.forEach(v => {
+    addBox(v.config, v.position)
+  })
+}
+
 onMounted(() => {
   addScene()
   addCamera()
@@ -113,9 +121,7 @@ onMounted(() => {
   initAnimate()
   animate()
 
-  addBox({ width: 20, height: 10, depth: 20, color: '#dfdfdf', name: 'box1' }, { x: 0, y: 0, z: 0 })
-  addBox({ width: 20, height: 10, depth: 20, color: '#dfdfdf', name: 'box1' }, { x: 100, y: 0, z: 0 })
-  addBox({ width: 20, height: 10, depth: 20, color: '#dfdfdf', name: 'box1' }, { x: -100, y: 0, z: 0 })
+  addModel()
 })
 </script>
 
