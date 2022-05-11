@@ -1,12 +1,17 @@
 <template>
 <div class="main">
+  <button class="button" @click="setBox">设置</button>
   <div id="custom-view"></div>
+  <div class="detail-dialog" v-if="showDetails">
+    <div>{{ clickMeshName }}</div>
+    <button @click="showDetails = false"></button>
+  </div>
 </div>
 </template>
 
 <script lang="ts" setup>
 import * as THREE from 'three'
-import { onMounted } from 'vue';
+import { onMounted } from 'vue'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { CustomObjsData } from '/@/data/customObjs'
 import { gsap } from 'gsap'
@@ -15,6 +20,8 @@ let scene: THREE.Scene
 let camera: THREE.Camera
 let renderer: THREE.WebGLRenderer
 let orbitControls: OrbitControls
+let raycaster: THREE.Raycaster
+let mouse:THREE.Vector2
 
 // 创建场景
 const addScene = () => {
@@ -76,6 +83,23 @@ const addControl = () => {
   orbitControls.enablePan = true
 }
 
+// 鼠标点击
+let clickMeshName: string
+const handleMouseDown = (event: MouseEvent) => {
+  let x = (event.clientX / window.innerWidth) * 2 - 1
+  let y = -(event.clientY / window.innerHeight) * 2 + 1
+  mouse =new THREE.Vector2(x, y)
+  raycaster = new THREE.Raycaster()
+  raycaster.setFromCamera(mouse, camera)
+  const intersects = raycaster.intersectObjects(scene.children, true)
+  console.log('当前点击的Mash', intersects)
+  const dialogDom: HTMLDialogElement = document.querySelector('#info-dialog')
+  if (intersects && intersects.length > 0) {
+    clickMeshName = intersects[0].object.name
+    console.log(intersects[0].object.name)
+  }
+}
+
 
 const animate = () => {
 
@@ -102,31 +126,13 @@ const initAnimate = () => {
 // 正方
 const addBox = (config: BoxConfig, position: Position) => {
   const geometry = new THREE.BoxGeometry(config.width, config.height, config.depth)
-  // const material = new THREE.MeshBasicMaterial({ color: config.color, wireframe: true })
-  const material = new THREE.MeshPhongMaterial({ color: config.color })
+  const material = new THREE.MeshBasicMaterial({ color: config.color, wireframe: true })
+  // const material = new THREE.MeshPhongMaterial({ color: config.color })
   const object = new THREE.Mesh( geometry, material )
   object.name = config.name
   object.position.set(position.x, position.y, position.z)
   scene.add(object)
 }
-
-// 球
-// const addSphere = (config: SphereConfig, position: Position) => {
-//   const geometry = new THREE.SphereGeometry(config.radius, config.widthSegments, config.heightSegments)
-//   const material = new THREE.MeshBasicMaterial({ color: config.color })
-//   const object = new THREE.Mesh( geometry, material )
-//   object.position.set(position.x, position.y, position.z)
-//   scene.add(object)
-// }
-
-// 圆柱
-// const addCylinder = (config: CylinderConfig, position: Position) => {
-//   const geometry = new THREE.CylinderGeometry(config.radiusTop, config.radiusBottom, config.height, config.radialSegments)
-//   const material = new THREE.MeshBasicMaterial({ color: new THREE.Color( config.color ) })
-//   const object = new THREE.Mesh( geometry, material )
-//   object.position.set(position.x, position.y, position.z)
-//   scene.add(object)
-// }
 
 // 放置模型
 const addModel = () => {
@@ -135,6 +141,21 @@ const addModel = () => {
   })
 }
 
+const setStatus = (id: string) => {
+  const box = scene.getObjectByName('box' + id)
+  box?.traverse(child => {
+    if ( child instanceof THREE.Mesh ) {
+      child.material= new THREE.MeshPhongMaterial({color: 0xFF0000, transparent: true, opacity: 0.8})
+    }
+  })
+}
+
+const setBox = () => {
+  setStatus('2-2')
+  setStatus('5-4')
+  setStatus('3-5')
+  setStatus('4-1')
+}
 onMounted(() => {
   addScene()
   addCamera()
@@ -145,6 +166,7 @@ onMounted(() => {
   animate()
 
   addModel()
+  document.addEventListener('click', handleMouseDown, false)
 })
 </script>
 
@@ -152,5 +174,18 @@ onMounted(() => {
 .main {
   width: 100%;
   height: 100vh;
+}
+.button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+.detail-dialog {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 40px;
+  background: #fff;
 }
 </style>
