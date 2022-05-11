@@ -32,7 +32,7 @@ const addScene = () => {
 // 创建相机
 const addCamera = () => {
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000)
-  camera.position.set(-70, 10, 50)
+  camera.position.set(0, 0, -200)
   camera.lookAt(scene.position)
   scene.add(camera)
 }
@@ -50,6 +50,20 @@ const addRenderer = () => {
   renderer.shadowMap.enabled  = true //激活阴影
   renderer.render(scene, camera)
   canvas?.appendChild(renderer.domElement)
+}
+
+// 创建灯光
+const addLights = () => {
+  // 环境光
+  const ambient = new THREE.AmbientLight(0xffffff);
+  scene.add(ambient); // 将环境光添加到场景中
+
+  // 太阳光
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 2.4);
+  directionalLight.position.set(400, 400, 400);
+  directionalLight.castShadow = false;
+  scene.add(directionalLight);
+
 }
 
 // 创建控制器
@@ -76,19 +90,20 @@ const animate = () => {
 
 const initAnimate = () => {
   renderer.render(scene, camera)
-  if (camera.position.x < 300) {
-    gsap.to(
-      camera.position,
-      {x: camera.position.x + 5, y: 10, z: 50 } //需要移动的距离
-    )
-  }
+  // if (camera.position.x < 300) {
+  //   gsap.to(
+  //     camera.position,
+  //     {x: camera.position.x + 5, y: 10, z: 50 } //需要移动的距离
+  //   )
+  // }
   requestAnimationFrame(initAnimate)
 }
 
 // 正方
 const addBox = (config: BoxConfig, position: Position) => {
   const geometry = new THREE.BoxGeometry(config.width, config.height, config.depth)
-  const material = new THREE.MeshBasicMaterial({ color: config.color, wireframe: true })
+  // const material = new THREE.MeshBasicMaterial({ color: config.color, wireframe: true })
+  const material = new THREE.MeshPhongMaterial({ color: config.color })
   const object = new THREE.Mesh( geometry, material )
   object.name = config.name
   object.position.set(position.x, position.y, position.z)
@@ -125,6 +140,7 @@ onMounted(() => {
   addCamera()
   addRenderer()
   addControl()
+  addLights()
   initAnimate()
   animate()
 
