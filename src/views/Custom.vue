@@ -4,14 +4,14 @@
   <div id="custom-view"></div>
   <div class="detail-dialog" v-if="showDetails">
     <div>{{ clickMeshName }}</div>
-    <button @click="showDetails = false"></button>
+    <button @click="showDetails = false">关闭</button>
   </div>
 </div>
 </template>
 
 <script lang="ts" setup>
 import * as THREE from 'three'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { CustomObjsData } from '/@/data/customObjs'
 import { gsap } from 'gsap'
@@ -22,6 +22,8 @@ let renderer: THREE.WebGLRenderer
 let orbitControls: OrbitControls
 let raycaster: THREE.Raycaster
 let mouse:THREE.Vector2
+
+let showDetails = ref(false)
 
 // 创建场景
 const addScene = () => {
@@ -39,7 +41,7 @@ const addScene = () => {
 // 创建相机
 const addCamera = () => {
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000)
-  camera.position.set(0, 0, -200)
+  camera.position.set(0, 0, -20)
   camera.lookAt(scene.position)
   scene.add(camera)
 }
@@ -84,7 +86,7 @@ const addControl = () => {
 }
 
 // 鼠标点击
-let clickMeshName: string
+let clickMeshName = ref('')
 const handleMouseDown = (event: MouseEvent) => {
   let x = (event.clientX / window.innerWidth) * 2 - 1
   let y = -(event.clientY / window.innerHeight) * 2 + 1
@@ -93,10 +95,9 @@ const handleMouseDown = (event: MouseEvent) => {
   raycaster.setFromCamera(mouse, camera)
   const intersects = raycaster.intersectObjects(scene.children, true)
   console.log('当前点击的Mash', intersects)
-  const dialogDom: HTMLDialogElement = document.querySelector('#info-dialog')
   if (intersects && intersects.length > 0) {
-    clickMeshName = intersects[0].object.name
-    console.log(intersects[0].object.name)
+    clickMeshName.value = intersects[0].object.name
+    showDetails.value = true
   }
 }
 
@@ -112,14 +113,38 @@ const animate = () => {
 
 }
 
+let isAnimal1Done: boolean = false
+let isAnimal2Done: boolean = false
 const initAnimate = () => {
   renderer.render(scene, camera)
-  // if (camera.position.x < 300) {
-  //   gsap.to(
-  //     camera.position,
-  //     {x: camera.position.x + 5, y: 10, z: 50 } //需要移动的距离
-  //   )
-  // }
+  if (camera.position.y < 220 && !isAnimal1Done) {
+    gsap.to(
+      camera.position,
+      {x: 0, y: camera.position.y + 5, z: -20 } //需要移动的距离
+    )
+  } else {
+    isAnimal1Done = true
+    if (!isAnimal2Done) {
+      if (camera.position.y === 0) {
+        gsap.to(
+          camera.position,
+          {x: camera.position.x + 1, y: 0, z: camera.position.z - 1 } //需要移动的距离
+        )
+      } else {
+        gsap.to(
+          camera.position,
+          {x: camera.position.x + 1, y: camera.position.y - 1, z: camera.position.z - 5 } //需要移动的距离
+        )
+      }
+      console.log(camera.position.z < -150)
+      if (camera.position.z < -150) {
+        console.log(1111)
+        isAnimal2Done = true
+      }
+    }
+  }
+ 
+  
   requestAnimationFrame(initAnimate)
 }
 
