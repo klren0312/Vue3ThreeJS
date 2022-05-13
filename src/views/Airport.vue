@@ -78,20 +78,20 @@ export default {
 
     const animate = () => {
 
-      requestAnimationFrame( animate );
+      requestAnimationFrame( animate )
 
       // required if controls.enableDamping or controls.autoRotate are set to true
-      orbitControls.update();
+      orbitControls.update()
 
-      renderer.render( scene, camera );
+      renderer.render( scene, camera )
 
     }
 
     // 创建灯光
     const addLights = () => {
       // 环境光
-      const ambient = new THREE.AmbientLight(0xffffff);
-      scene.add(ambient); // 将环境光添加到场景中
+      const ambient = new THREE.AmbientLight(0xffffff)
+      scene.add(ambient) // 将环境光添加到场景中
 
       // 点光源
       const pointLight = new THREE.PointLight('#ffffff', 2.4, 0)
@@ -99,10 +99,10 @@ export default {
       scene.add(pointLight)
 
       // 太阳光
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 2.4);
-      directionalLight.position.set(0, 50, 0);
-      directionalLight.castShadow = false;
-      scene.add(directionalLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 2.4)
+      directionalLight.position.set(0, 50, 0)
+      directionalLight.castShadow = false
+      scene.add(directionalLight)
 
     }
 

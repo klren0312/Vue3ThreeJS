@@ -41,7 +41,8 @@ const addScene = () => {
 // 创建相机
 const addCamera = () => {
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000)
-  camera.position.set(0, 0, -20)
+  // camera.position.set(0, 220, -20)
+  camera.position.set(100, 300, 300)
   camera.lookAt(scene.position)
   scene.add(camera)
 }
@@ -97,7 +98,7 @@ const handleMouseDown = (event: MouseEvent) => {
   console.log('当前点击的Mash', intersects)
   if (intersects && intersects.length > 0) {
     clickMeshName.value = intersects[0].object.name
-    showDetails.value = true
+    // showDetails.value = true
   }
 }
 
@@ -133,27 +134,28 @@ const initAnimate = () => {
       } else {
         gsap.to(
           camera.position,
-          {x: camera.position.x + 1, y: camera.position.y - 1, z: camera.position.z - 5 } //需要移动的距离
+          {x: camera.position.x + 1, y: camera.position.y - 6, z: camera.position.z - 5 } //需要移动的距离
         )
       }
-      console.log(camera.position.z < -150)
-      if (camera.position.z < -150) {
-        console.log(1111)
+      if (camera.position.z < -220) {
         isAnimal2Done = true
       }
     }
   }
- 
-  
   requestAnimationFrame(initAnimate)
 }
 
 // 正方
 const addBox = (config: BoxConfig, position: Position) => {
   const geometry = new THREE.BoxGeometry(config.width, config.height, config.depth)
-  const material = new THREE.MeshBasicMaterial({ color: config.color, wireframe: true })
-  // const material = new THREE.MeshPhongMaterial({ color: config.color })
+  let material = new THREE.MeshBasicMaterial({ color: config.color, wireframe: true })
+  if (config.name === 'box6') {
+    material = new THREE.MeshBasicMaterial({ color: config.color, transparent: true, opacity: 0.2 })
+  } if (config.name === 'ground') {
+    material = new THREE.MeshPhongMaterial({ color: config.color, opacity: 0.2 })
+  }
   const object = new THREE.Mesh( geometry, material )
+
   object.name = config.name
   object.position.set(position.x, position.y, position.z)
   scene.add(object)
@@ -187,7 +189,7 @@ onMounted(() => {
   addRenderer()
   addControl()
   addLights()
-  initAnimate()
+  // initAnimate()
   animate()
 
   addModel()
