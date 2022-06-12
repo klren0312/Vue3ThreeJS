@@ -34,7 +34,7 @@ export default {
     const addCamera = () => {
       camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000)
       // camera.position.set(0, 20, 20)
-      camera.position.set( -1.3, 0, 3 )
+      camera.position.set( -2, 0, 3 )
       camera.lookAt(scene.position)
       scene.add(camera)
     }
@@ -101,20 +101,20 @@ export default {
           }
           vrm?.springBoneManager?.reset()
           const model = vrmPeople.scene
-          model.position.set(0, -1, 0)
-          model.position.x = -1.5
+          model.position.set(-2, -1, 0)
+
           // model.scale.set(6, 6, 6)
           scene.add(model)
           // skeletonHelper = new THREE.SkeletonHelper(model)
           // scene.add(skeletonHelper)
           // setupDatGui()
-          // prepareAnimation(vrm)
-
 
           rigRotation("RightUpperArm", { x: 0, y: 0, z: -1.25, rotationOrder: 'XYZ' })
           rigRotation("RightLowerArm", { x: -0, y: 0, z: -0, rotationOrder: 'XYZ' })
           rigRotation("LeftUpperArm", { x: 0, y: -0, z: 1.25, rotationOrder: 'XYZ' })
           rigRotation("LeftLowerArm", { x: 0, y: -0, z: 0, rotationOrder: 'XYZ' })
+
+          prepareAnimation(vrm)
         })
       }, onProgress, onError)
     }
@@ -198,26 +198,26 @@ export default {
 
     const animate = () => {
       requestAnimationFrame( animate )
-        orbitControls.update()
-				const deltaTime = clock.getDelta()
+      // orbitControls.update()
+      const deltaTime = clock.getDelta()
 
-				if ( vrmPeople ) {
+      if ( vrmPeople ) {
 
-					// tweak blendshape
-					const s = Math.sin( Math.PI * clock.elapsedTime )
-					vrmPeople?.blendShapeProxy?.setValue( VRMSchema.BlendShapePresetName.A, 0.5 + 0.5 * s )
-					// vrmPeople?.blendShapeProxy?.setValue( VRMSchema.BlendShapePresetName.BlinkL, 0.5 - 0.5 * s )
+        // tweak blendshape
+        const s = Math.sin( 3 * Math.PI * clock.elapsedTime )
+        vrmPeople?.blendShapeProxy?.setValue( VRMSchema.BlendShapePresetName.A, s)
+        // vrmPeople?.blendShapeProxy?.setValue( VRMSchema.BlendShapePresetName.BlinkL, 0.5 - 0.5 * s )
 
-					// update vrm
-					vrmPeople.update( deltaTime )
+        // update vrm
+        vrmPeople.update( deltaTime )
 
-				}
+      }
 
-        if (currentMixer) {
-          currentMixer.update(deltaTime)
-        }
+      if (currentMixer) {
+        currentMixer.update(deltaTime)
+      }
 
-				renderer.render( scene, camera )
+      renderer.render( scene, camera )
     }
 
     // animation
@@ -245,7 +245,7 @@ export default {
         [ 0.0, 1.0, 0.0 ] // values
       )
 
-      const clip = new THREE.AnimationClip( 'blink', 1.0, [ armTrack, blinkTrack ] )
+      const clip = new THREE.AnimationClip( 'blink', 2.0, [ armTrack, blinkTrack ] )
       const action = currentMixer.clipAction( clip )
       action.play()
     }
@@ -254,7 +254,7 @@ export default {
       addScene()
       addCamera()
       addRenderer()
-      addControl()
+      // addControl()
       addLights()
       addObjModel()
       animate()
