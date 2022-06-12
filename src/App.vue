@@ -1,5 +1,8 @@
 <template>
-  <div id="webgl"></div>
+  <div class="main-page">
+    <div id="webgl"></div>
+    <iframe class="iframe" src="https://www.ghxi.com/" frameborder="0"></iframe>
+  </div>
 </template>
 <script lang="ts">
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
@@ -31,7 +34,7 @@ export default {
     const addCamera = () => {
       camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000)
       // camera.position.set(0, 20, 20)
-      camera.position.set( 0.0, 1.0, 5.0 )
+      camera.position.set( -1.3, 0, 3 )
       camera.lookAt(scene.position)
       scene.add(camera)
     }
@@ -43,7 +46,7 @@ export default {
         antialias: true,
         alpha: true
       })
-      renderer.setClearColor(0xffffff)
+      renderer.setClearAlpha(0)
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.shadowMap.enabled  = true; //激活阴影
@@ -59,17 +62,6 @@ export default {
       orbitControls.enableDamping = true
       orbitControls.enableZoom = true
       orbitControls.enablePan = true
-    }
-
-    function animate() {
-
-      requestAnimationFrame( animate );
-
-      // required if controls.enableDamping or controls.autoRotate are set to true
-      orbitControls.update();
-      // animateVRM()
-      renderer.render( scene, camera );
-
     }
 
     // 创建灯光
@@ -92,7 +84,7 @@ export default {
 
     const addObjModel = () => {
       const onProgress = (xhr: ProgressEvent<EventTarget>) => {
-        console.log(xhr)
+        // console.log(xhr)
       }
       const onError = (event: ErrorEvent) => {}
       const gltfLoader = new GLTFLoader()
@@ -109,15 +101,40 @@ export default {
           }
           vrm?.springBoneManager?.reset()
           const model = vrmPeople.scene
-          model.position.set(0, 0, 0)
+          model.position.set(0, -1, 0)
+          model.position.x = -1.5
           // model.scale.set(6, 6, 6)
           scene.add(model)
           // skeletonHelper = new THREE.SkeletonHelper(model)
           // scene.add(skeletonHelper)
           // setupDatGui()
-          prepareAnimation(vrm)
+          // prepareAnimation(vrm)
+
+
+          rigRotation("RightUpperArm", { x: 0, y: 0, z: -1.25, rotationOrder: 'XYZ' })
+          rigRotation("RightLowerArm", { x: -0, y: 0, z: -0, rotationOrder: 'XYZ' })
+          rigRotation("LeftUpperArm", { x: 0, y: -0, z: 1.25, rotationOrder: 'XYZ' })
+          rigRotation("LeftLowerArm", { x: 0, y: -0, z: 0, rotationOrder: 'XYZ' })
         })
       }, onProgress, onError)
+    }
+
+    const rigRotation = (
+        name: keyof typeof VRMSchema.HumanoidBoneName,
+        rotation = { x: 0, y: 0, z: 0, rotationOrder: 'XYZ' },
+        dampener = 1,
+        lerpAmount = 0.3
+    ) => {
+      const Part = vrmPeople?.humanoid?.getBoneNode(VRMSchema.HumanoidBoneName[name])
+            console.log(Part)
+      let euler = new THREE.Euler(
+        rotation.x * dampener,
+        rotation.y * dampener,
+        rotation.z * dampener,
+        rotation.rotationOrder
+      )
+      let quaternion = new THREE.Quaternion().setFromEuler(euler)
+      Part?.quaternion.slerp(quaternion, 1)
     }
 
     function setupDatGui() {
@@ -179,20 +196,20 @@ export default {
       guiroot.style.zIndex = "10000";
     }
 
-    const faceAnimate = () => {
-      requestAnimationFrame( faceAnimate );
-
-				const deltaTime = clock.getDelta();
+    const animate = () => {
+      requestAnimationFrame( animate )
+        orbitControls.update()
+				const deltaTime = clock.getDelta()
 
 				if ( vrmPeople ) {
 
 					// tweak blendshape
-					const s = Math.sin( Math.PI * clock.elapsedTime );
-					vrmPeople?.blendShapeProxy?.setValue( VRMSchema.BlendShapePresetName.A, 0.5 + 0.5 * s );
-					// vrmPeople?.blendShapeProxy?.setValue( VRMSchema.BlendShapePresetName.BlinkL, 0.5 - 0.5 * s );
+					const s = Math.sin( Math.PI * clock.elapsedTime )
+					vrmPeople?.blendShapeProxy?.setValue( VRMSchema.BlendShapePresetName.A, 0.5 + 0.5 * s )
+					// vrmPeople?.blendShapeProxy?.setValue( VRMSchema.BlendShapePresetName.BlinkL, 0.5 - 0.5 * s )
 
 					// update vrm
-					vrmPeople.update( deltaTime );
+					vrmPeople.update( deltaTime )
 
 				}
 
@@ -200,7 +217,7 @@ export default {
           currentMixer.update(deltaTime)
         }
 
-				renderer.render( scene, camera );
+				renderer.render( scene, camera )
     }
 
     // animation
@@ -240,13 +257,36 @@ export default {
       addControl()
       addLights()
       addObjModel()
-      faceAnimate()
+      animate()
     }
 
     onMounted(() => {
       init()
-      animate()
     })
   }
 }
 </script>
+<style lang="scss">
+body,
+html {
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+.main-page {
+  position: relative;
+  background: url(./assets/bg.jpg) center / 100% 100% no-repeat;
+
+  #webgl {
+    overflow: hidden;
+  }
+
+  .iframe {
+    position: absolute;
+    top: 50px;
+    right: 376px;
+    width: 734px;
+    height: 400px;
+  }
+}
+</style>
