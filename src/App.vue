@@ -1,7 +1,7 @@
 <template>
   <div class="main-page">
     <div id="webgl"></div>
-    <iframe class="iframe" src="https://www.ghxi.com/" frameborder="0"></iframe>
+    <iframe class="iframe" src="https://cn.bing.com/" frameborder="0"></iframe>
   </div>
 </template>
 <script lang="ts">
@@ -12,6 +12,10 @@ import { onMounted } from 'vue'
 import { VRM, VRMSchema, VRMUtils } from '@pixiv/three-vrm'
 import GUI from 'lil-gui'
 
+interface ActionObjectType {
+  [name: string]: THREE.AnimationAction
+}
+
 export default {
   setup() {
     let scene: THREE.Scene
@@ -21,19 +25,26 @@ export default {
     let skeletonHelper: THREE.SkeletonHelper
     let vrmPeople: VRM
     let currentMixer: THREE.AnimationMixer
+    let actions: ActionObjectType
     const clock = new THREE.Clock()
+
+    // 鼠标点击定位
+    let raycaster = new THREE.Raycaster()
+    let mouse = new THREE.Vector2()
+    let objectArr: THREE.Mesh[] = [] // 存放场景中所有mesh
 
     // 创建场景
     const addScene = () => {
       scene = new THREE.Scene()
-      // const axes = new THREE.AxesHelper(120);
-      // scene.add(axes);
+      const axes = new THREE.AxesHelper(120);
+      scene.add(axes);
     }
 
     // 创建相机
     const addCamera = () => {
-      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000)
-      camera.position.set( -2, 0, 3 )
+      const canvas = document.querySelector('#webgl')
+      camera = new THREE.PerspectiveCamera(45, (canvas?.clientWidth || 0) / (canvas?.clientHeight || 0), 0.1, 5000)
+      camera.position.set( 0, 0, 2 )
       camera.lookAt(scene.position)
       scene.add(camera)
     }
@@ -47,7 +58,7 @@ export default {
       })
       renderer.setClearAlpha(0)
       renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(canvas?.clientWidth || 0, canvas?.clientHeight || 0);
       renderer.shadowMap.enabled  = true; //激活阴影
       renderer.render(scene, camera)
       canvas?.appendChild(renderer.domElement)
@@ -65,15 +76,6 @@ export default {
 
     // 创建灯光
     const addLights = () => {
-      // 环境光
-      const ambient = new THREE.AmbientLight(0xffffff);
-      scene.add(ambient); // 将环境光添加到场景中
-
-      // 户外光照效果
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff);
-      hemiLight.position.set(0, 200, 0);
-      scene.add(hemiLight);
-
       // 太阳光
       const directionalLight = new THREE.DirectionalLight(0xffffff);
       directionalLight.position.set(0, 100, 0);
@@ -83,7 +85,33 @@ export default {
 
     const addObjModel = () => {
       const onProgress = (xhr: ProgressEvent<EventTarget>) => {
-        // console.log(xhr)
+        if (xhr.lengthComputable) {
+          var percentComplete = xhr.loaded / xhr.total * 100;
+          // 每次加载完毕将mesh放进数组
+          if (percentComplete === 100) {
+            objectArr = []
+            scene.traverse(function (s) {
+              if (s && s.type === 'Scene') {
+                getMesh(s.children, objectArr, '')
+              }
+            })
+          }
+        }
+      }
+      // 递归出所有mesh
+      const getMesh = (s: THREE.Object3D<THREE.Event>[], arr: THREE.Mesh[], name: string) => {
+        s.forEach(v => {
+          if (v.children && v.children.length > 0) {
+            getMesh(v.children, arr, v.name)
+          } else {
+            if (v instanceof THREE.Mesh) {
+              if (name) {
+                v.name = name
+              }
+              arr.push(v)
+            }
+          }
+        })
       }
       const onError = (event: ErrorEvent) => {}
       const gltfLoader = new GLTFLoader()
@@ -100,9 +128,10 @@ export default {
           }
           vrm?.springBoneManager?.reset()
           const model = vrmPeople.scene
-          model.position.set(-2, -1, 0)
+          model.position.set(0, -1, 0)
 
           scene.add(model)
+
           // skeletonHelper = new THREE.SkeletonHelper(model)
           // scene.add(skeletonHelper)
           // setupDatGui()
@@ -112,7 +141,9 @@ export default {
           rigRotation("LeftUpperArm", { x: 0, y: -0, z: 1.25, rotationOrder: 'XYZ' })
           rigRotation("LeftLowerArm", { x: 0, y: -0, z: 0, rotationOrder: 'XYZ' })
 
-          prepareAnimation(vrm)
+          currentMixer = new THREE.AnimationMixer( vrm.scene )
+          blinkAnimate(vrm)
+          armAnimate(vrm)
         })
       }, onProgress, onError)
     }
@@ -120,8 +151,7 @@ export default {
     const rigRotation = (
         name: keyof typeof VRMSchema.HumanoidBoneName,
         rotation = { x: 0, y: 0, z: 0, rotationOrder: 'XYZ' },
-        dampener = 1,
-        lerpAmount = 0.3
+        dampener = 1
     ) => {
       const Part = vrmPeople?.humanoid?.getBoneNode(VRMSchema.HumanoidBoneName[name])
             console.log(Part)
@@ -194,13 +224,44 @@ export default {
       guiroot.style.zIndex = "10000";
     }
 
+    // animation
+        const blinkAnimate = (vrm: VRM) => {
+      const blinkTrack = new THREE.NumberKeyframeTrack(
+        vrmPeople?.blendShapeProxy?.getBlendShapeTrackName( VRMSchema.BlendShapePresetName.Blink ) || VRMSchema.BlendShapePresetName.Blink, // name
+        [ 0.0, 0.5, 1.0 ], // times
+        [ 0.0, 1.0, 0.0 ] // values
+      )
+
+      const clip = new THREE.AnimationClip('blink', 2.0, [ blinkTrack])
+      actions['blink'] = currentMixer.clipAction( clip )
+      // action.play()
+    }
+
+    const armAnimate = (vrm: VRM) => {
+      const quatA = new THREE.Quaternion( 0.0, 0.0, 0.0, 1.0 )
+      const quatB = new THREE.Quaternion( 0.0, 0.0, 0.0, 1.0 )
+      quatB.setFromEuler( new THREE.Euler( 0.0, 0.0, 0.25 * Math.PI ) )
+      const arm = vrm.humanoid?.getBoneNode(VRMSchema.HumanoidBoneName.LeftUpperArm)
+      let boneName = ''
+      if (arm !== undefined && arm !== null) {
+        boneName = arm.name + '.quaternion'
+      }
+      const armTrack = new THREE.QuaternionKeyframeTrack(
+        boneName, // name
+        [ 0.0, 0.5, 1.0 ], // times
+        [ ...quatA.toArray(), ...quatB.toArray(), ...quatA.toArray() ] // values
+      )
+      const clip = new THREE.AnimationClip('arm', 2.0, [ armTrack ])
+      actions['arm'] = currentMixer.clipAction( clip )
+    }
+
+
     const animate = () => {
       requestAnimationFrame( animate )
       // orbitControls.update()
       const deltaTime = clock.getDelta()
 
       if ( vrmPeople ) {
-
         // tweak blendshape
         const s = Math.sin( 3 * Math.PI * clock.elapsedTime )
         vrmPeople?.blendShapeProxy?.setValue( VRMSchema.BlendShapePresetName.A, s)
@@ -218,34 +279,15 @@ export default {
       renderer.render( scene, camera )
     }
 
-    // animation
-		const prepareAnimation = (vrm: VRM) => {
-      currentMixer = new THREE.AnimationMixer( vrm.scene )
-
-      const quatA = new THREE.Quaternion( 0.0, 0.0, 0.0, 1.0 )
-      const quatB = new THREE.Quaternion( 0.0, 0.0, 0.0, 1.0 )
-      quatB.setFromEuler( new THREE.Euler( 0.0, 0.0, 0.25 * Math.PI ) )
-
-      const arm = vrm.humanoid?.getBoneNode(VRMSchema.HumanoidBoneName.LeftUpperArm)
-      let boneName = ''
-      if (arm !== undefined && arm !== null) {
-        boneName = arm.name + '.quaternion'
+    function handleMouseDown(event: { clientX: number; clientY: number }) {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+      raycaster.setFromCamera(mouse, camera)
+      const intersects = raycaster.intersectObjects(objectArr)
+      // console.log('当前点击的Mash', intersects)
+      if (intersects && intersects.length > 0) {
+          
       }
-      const armTrack = new THREE.QuaternionKeyframeTrack(
-        boneName, // name
-        [ 0.0, 0.5, 1.0 ], // times
-        [ ...quatA.toArray(), ...quatB.toArray(), ...quatA.toArray() ] // values
-      )
-
-      const blinkTrack = new THREE.NumberKeyframeTrack(
-        vrmPeople?.blendShapeProxy?.getBlendShapeTrackName( VRMSchema.BlendShapePresetName.Blink ) || VRMSchema.BlendShapePresetName.Blink, // name
-        [ 0.0, 0.5, 1.0 ], // times
-        [ 0.0, 1.0, 0.0 ] // values
-      )
-
-      const clip = new THREE.AnimationClip( 'blink', 2.0, [ armTrack, blinkTrack ] )
-      const action = currentMixer.clipAction( clip )
-      action.play()
     }
 
     const init = () => {
@@ -272,19 +314,28 @@ html {
   overflow: hidden;
 }
 .main-page {
+  height: 100vh;
+  width: 100vw;
   position: relative;
-  background: url(./assets/bg.jpg) center / 100% 100% no-repeat;
+  // background: url(./assets/bg.jpg) center / 100% 100% no-repeat;
 
   #webgl {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 200px;
+    height: 400px;
     overflow: hidden;
   }
 
   .iframe {
-    position: absolute;
-    top: 50px;
-    right: 20%;
-    width: 50%;
-    height: 50%;
+    width: 100%;
+    height: 100%;
+    // position: absolute;
+    // top: 50px;
+    // right: 20%;
+    // width: 50%;
+    // height: 50%;
   }
 }
 </style>
