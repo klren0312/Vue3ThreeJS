@@ -33,7 +33,6 @@ export default {
     // 创建相机
     const addCamera = () => {
       camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000)
-      // camera.position.set(0, 20, 20)
       camera.position.set( -2, 0, 3 )
       camera.lookAt(scene.position)
       scene.add(camera)
@@ -103,7 +102,6 @@ export default {
           const model = vrmPeople.scene
           model.position.set(-2, -1, 0)
 
-          // model.scale.set(6, 6, 6)
           scene.add(model)
           // skeletonHelper = new THREE.SkeletonHelper(model)
           // scene.add(skeletonHelper)
@@ -254,7 +252,7 @@ export default {
       addScene()
       addCamera()
       addRenderer()
-      // addControl()
+      addControl()
       addLights()
       addObjModel()
       animate()
@@ -284,9 +282,9 @@ html {
   .iframe {
     position: absolute;
     top: 50px;
-    right: 376px;
-    width: 734px;
-    height: 400px;
+    right: 20%;
+    width: 50%;
+    height: 50%;
   }
 }
 </style>
