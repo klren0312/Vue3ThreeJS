@@ -1,20 +1,16 @@
 <template>
   <div class="main-page">
     <div id="webgl"></div>
-    <iframe class="iframe" src="https://cn.bing.com/" frameborder="0"></iframe>
+    <!-- <iframe class="iframe" src="https://cn.bing.com/" frameborder="0"></iframe> -->
   </div>
 </template>
 <script lang="ts">
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import * as THREE from 'three'
-import { onMounted } from 'vue'
+import { nextTick, onMounted } from 'vue'
 import { VRM, VRMSchema, VRMUtils } from '@pixiv/three-vrm'
 import GUI from 'lil-gui'
-
-interface ActionObjectType {
-  [name: string]: THREE.AnimationAction
-}
 
 export default {
   setup() {
@@ -25,7 +21,7 @@ export default {
     let skeletonHelper: THREE.SkeletonHelper
     let vrmPeople: VRM
     let currentMixer: THREE.AnimationMixer
-    let actions: ActionObjectType
+    let actions: THREE.AnimationAction[] = []
     const clock = new THREE.Clock()
 
     // 鼠标点击定位
@@ -36,8 +32,8 @@ export default {
     // 创建场景
     const addScene = () => {
       scene = new THREE.Scene()
-      const axes = new THREE.AxesHelper(120);
-      scene.add(axes);
+      // const axes = new THREE.AxesHelper(120);
+      // scene.add(axes);
     }
 
     // 创建相机
@@ -85,33 +81,7 @@ export default {
 
     const addObjModel = () => {
       const onProgress = (xhr: ProgressEvent<EventTarget>) => {
-        if (xhr.lengthComputable) {
-          var percentComplete = xhr.loaded / xhr.total * 100;
-          // 每次加载完毕将mesh放进数组
-          if (percentComplete === 100) {
-            objectArr = []
-            scene.traverse(function (s) {
-              if (s && s.type === 'Scene') {
-                getMesh(s.children, objectArr, '')
-              }
-            })
-          }
-        }
-      }
-      // 递归出所有mesh
-      const getMesh = (s: THREE.Object3D<THREE.Event>[], arr: THREE.Mesh[], name: string) => {
-        s.forEach(v => {
-          if (v.children && v.children.length > 0) {
-            getMesh(v.children, arr, v.name)
-          } else {
-            if (v instanceof THREE.Mesh) {
-              if (name) {
-                v.name = name
-              }
-              arr.push(v)
-            }
-          }
-        })
+        //
       }
       const onError = (event: ErrorEvent) => {}
       const gltfLoader = new GLTFLoader()
@@ -144,17 +114,43 @@ export default {
           currentMixer = new THREE.AnimationMixer( vrm.scene )
           blinkAnimate(vrm)
           armAnimate(vrm)
+
+          nextTick(() => {
+            objectArr = []
+            scene.traverse(s => {
+              if (s && s.type === 'Scene') {
+                getMesh(s.children, '')
+              }
+            })
+          })
+          // 递归出所有mesh
+          const getMesh = (s: THREE.Object3D<THREE.Event>[], name: string) => {
+            s.forEach(v => {
+              if (v.children && v.children.length > 0) {
+                getMesh(v.children, v.name)
+              } else {
+                if (v instanceof THREE.Mesh) {
+                  if (name) {
+                    v.name = name
+                  }
+                  objectArr.push(v)
+                }
+              }
+            })
+          }
         })
       }, onProgress, onError)
     }
 
+    /**
+     * 骨骼变动
+     */
     const rigRotation = (
         name: keyof typeof VRMSchema.HumanoidBoneName,
         rotation = { x: 0, y: 0, z: 0, rotationOrder: 'XYZ' },
         dampener = 1
     ) => {
       const Part = vrmPeople?.humanoid?.getBoneNode(VRMSchema.HumanoidBoneName[name])
-            console.log(Part)
       let euler = new THREE.Euler(
         rotation.x * dampener,
         rotation.y * dampener,
@@ -165,6 +161,9 @@ export default {
       Part?.quaternion.slerp(quaternion, 1)
     }
 
+    /**
+     * 调试窗口
+     */
     function setupDatGui() {
       const gui = new GUI()
       let folder = gui.addFolder("骨骼解析");
@@ -224,8 +223,10 @@ export default {
       guiroot.style.zIndex = "10000";
     }
 
-    // animation
-        const blinkAnimate = (vrm: VRM) => {
+    /**
+     * 眨眼动画
+     */
+    const blinkAnimate = (vrm: VRM) => {
       const blinkTrack = new THREE.NumberKeyframeTrack(
         vrmPeople?.blendShapeProxy?.getBlendShapeTrackName( VRMSchema.BlendShapePresetName.Blink ) || VRMSchema.BlendShapePresetName.Blink, // name
         [ 0.0, 0.5, 1.0 ], // times
@@ -233,10 +234,12 @@ export default {
       )
 
       const clip = new THREE.AnimationClip('blink', 2.0, [ blinkTrack])
-      actions['blink'] = currentMixer.clipAction( clip )
-      // action.play()
+      actions.push(currentMixer.clipAction( clip ))
     }
 
+    /**
+     * 右手臂动画
+     */
     const armAnimate = (vrm: VRM) => {
       const quatA = new THREE.Quaternion( 0.0, 0.0, 0.0, 1.0 )
       const quatB = new THREE.Quaternion( 0.0, 0.0, 0.0, 1.0 )
@@ -252,7 +255,7 @@ export default {
         [ ...quatA.toArray(), ...quatB.toArray(), ...quatA.toArray() ] // values
       )
       const clip = new THREE.AnimationClip('arm', 2.0, [ armTrack ])
-      actions['arm'] = currentMixer.clipAction( clip )
+      actions.push(currentMixer.clipAction( clip ))
     }
 
 
@@ -279,14 +282,21 @@ export default {
       renderer.render( scene, camera )
     }
 
-    function handleMouseDown(event: { clientX: number; clientY: number }) {
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+    let currentActionIndex: number | null = null
+    const handleMouseDown = (event: PointerEvent) => {
+      const canvas = document.querySelector('#webgl')
+      mouse.x = (event.clientX / (canvas?.clientWidth || 0)) * 2 - 1
+      mouse.y = -(event.clientY / (canvas?.clientHeight || 0)) * 2 + 1
       raycaster.setFromCamera(mouse, camera)
-      const intersects = raycaster.intersectObjects(objectArr)
-      // console.log('当前点击的Mash', intersects)
+      const intersects = raycaster.intersectObjects(objectArr, true)
+      console.log('当前点击的Mash', intersects)
       if (intersects && intersects.length > 0) {
-          
+        const random = Math.floor(Math.random() * actions.length)
+        if (currentActionIndex !== null) {
+          actions[currentActionIndex].stop() 
+        }
+        currentActionIndex = random
+        actions[random].play()
       }
     }
 
@@ -298,6 +308,7 @@ export default {
       addLights()
       addObjModel()
       animate()
+      document.querySelector('#webgl')?.addEventListener('click', handleMouseDown as EventListener, false)
     }
 
     onMounted(() => {
