@@ -102,6 +102,7 @@ export default {
 
           scene.add(model)
 
+
           // skeletonHelper = new THREE.SkeletonHelper(model)
           // scene.add(skeletonHelper)
           // setupDatGui()
@@ -115,14 +116,7 @@ export default {
           blinkAnimate(vrm)
           armAnimate(vrm)
 
-          nextTick(() => {
-            objectArr = []
-            scene.traverse(s => {
-              if (s && s.type === 'Scene') {
-                getMesh(s.children, '')
-              }
-            })
-          })
+
           // 递归出所有mesh
           const getMesh = (s: THREE.Object3D<THREE.Event>[], name: string) => {
             s.forEach(v => {
@@ -138,6 +132,10 @@ export default {
               }
             })
           }
+          
+          model.traverse(s => {
+            getMesh(s.children, '')
+          })
         })
       }, onProgress, onError)
     }
