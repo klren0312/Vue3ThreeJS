@@ -31,7 +31,7 @@ export default {
       default: () => ({})
     }
   },
-  setup(props) {
+  setup(props: any) {
     let scene: THREE.Scene
     let camera: THREE.Camera
     let renderer: THREE.WebGLRenderer
@@ -154,8 +154,8 @@ export default {
           
 
           currentMixer = new THREE.AnimationMixer( vrm.scene )
-          blinkAnimate(vrm)
-          armAnimate(vrm)
+          // blinkAnimate(vrm)
+          // armAnimate(vrm)
 
 
           // 递归出所有mesh
@@ -181,24 +181,6 @@ export default {
       }, onProgress, onError)
     }
 
-    /**
-     * 骨骼变动
-     */
-    const rigRotation = (
-        name: keyof typeof VRMSchema.HumanoidBoneName,
-        rotation = { x: 0, y: 0, z: 0, rotationOrder: 'XYZ' },
-        dampener = 1
-    ) => {
-      const Part = vrmPeople?.humanoid?.getBoneNode(VRMSchema.HumanoidBoneName[name])
-      let euler = new THREE.Euler(
-        rotation.x * dampener,
-        rotation.y * dampener,
-        rotation.z * dampener,
-        rotation.rotationOrder
-      )
-      let quaternion = new THREE.Quaternion().setFromEuler(euler)
-      Part?.quaternion.slerp(quaternion, 1)
-    }
 
     /**
      * 调试窗口
@@ -310,7 +292,9 @@ export default {
         // vrmPeople?.blendShapeProxy?.setValue( VRMSchema.BlendShapePresetName.BlinkL, 0.5 - 0.5 * s )
         if (JSON.stringify(props.faceData) !== '{}') {
           console.log(props.faceData)
+          rigRotation("Neck", props.faceData.head, 0.7);
           rigFace(<FaceObj>props.faceData)
+          rigRotation
         }
         // update vrm
         vrmPeople.update( deltaTime )
@@ -346,6 +330,25 @@ export default {
     // const remap = Kalidokit.Utils.remap
     const clamp = Kalidokit.Utils.clamp
     const lerp = Kalidokit.Vector.lerp
+
+        /**
+     * 骨骼变动
+     */
+    const rigRotation = (
+        name: keyof typeof VRMSchema.HumanoidBoneName,
+        rotation = { x: 0, y: 0, z: 0, rotationOrder: 'XYZ' },
+        dampener = 1
+    ) => {
+      const Part = vrmPeople?.humanoid?.getBoneNode(VRMSchema.HumanoidBoneName[name])
+      let euler = new THREE.Euler(
+        rotation.x * dampener,
+        rotation.y * dampener,
+        rotation.z * dampener,
+        rotation.rotationOrder
+      )
+      let quaternion = new THREE.Quaternion().setFromEuler(euler)
+      Part?.quaternion.slerp(quaternion, 1)
+    }
 
     let oldLookTarget = new THREE.Euler();
     const rigFace = (riggedFace: FaceObj) => {
@@ -444,7 +447,7 @@ export default {
       addLights()
       addObjModel()
       animate()
-      document.querySelector('#webgl')?.addEventListener('click', handleMouseDown as EventListener, false)
+      // document.querySelector('#webgl')?.addEventListener('click', handleMouseDown as EventListener, false)
     }
 
     onMounted(() => {

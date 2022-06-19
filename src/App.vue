@@ -41,8 +41,8 @@ export default {
       let facelm = results.faceLandmarks
       let poselm = results.poseLandmarks
       let poselm3D = results.ea
-      // let rightHandlm = results.rightHandLandmarks
-      // let leftHandlm = results.leftHandLandmarks
+      let rightHandlm = results.rightHandLandmarks
+      let leftHandlm = results.leftHandLandmarks
 
       let faceRig = Kalidokit.Face.solve(facelm,{runtime:'mediapipe',video:videoElement})
       let poseRig = Kalidokit.Pose.solve(poselm3D,poselm,{runtime:'mediapipe',video:videoElement})
@@ -53,8 +53,8 @@ export default {
       onFrame: async () => {
         await holistic.send({image: videoElement})
       },
-      width: 100,
-      height: 100
+      width: 800,
+      height: 800
     })
     camera.start()
 
@@ -88,22 +88,22 @@ export default {
           }
         )
       }
-      // drawConnectors(canvasCtx, results.leftHandLandmarks, Holistic.HAND_CONNECTIONS, {
-      //   color: "#eb1064",
-      //   lineWidth: 5,
-      // })
-      // drawLandmarks(canvasCtx, results.leftHandLandmarks, {
-      //   color: "#00cff7",
-      //   lineWidth: 2,
-      // })
-      // drawConnectors(canvasCtx, results.rightHandLandmarks, Holistic.HAND_CONNECTIONS, {
-      //   color: "#22c3e3",
-      //   lineWidth: 5,
-      // })
-      // drawLandmarks(canvasCtx, results.rightHandLandmarks, {
-      //   color: "#ff0364",
-      //   lineWidth: 2,
-      // })
+      drawConnectors(canvasCtx, results.leftHandLandmarks, Holistic.HAND_CONNECTIONS, {
+        color: "#eb1064",
+        lineWidth: 5,
+      })
+      drawLandmarks(canvasCtx, results.leftHandLandmarks, {
+        color: "#00cff7",
+        lineWidth: 2,
+      })
+      drawConnectors(canvasCtx, results.rightHandLandmarks, Holistic.HAND_CONNECTIONS, {
+        color: "#22c3e3",
+        lineWidth: 5,
+      })
+      drawLandmarks(canvasCtx, results.rightHandLandmarks, {
+        color: "#ff0364",
+        lineWidth: 2,
+      })
     }
   }
 }
@@ -116,17 +116,17 @@ export default {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100px;
-  height: 100px;
+  width: 800px;
+  height: 800px;
 }
 .canvas {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100px;
-  height: 100px;
+  width: 800px;
+  height: 800px;
 }
 .hidden {
-  display: none;
+  // display: none;
 }
 </style>
