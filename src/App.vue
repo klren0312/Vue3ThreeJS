@@ -2,7 +2,12 @@
   <div class="container">
     <video class="video hidden" id="video"></video>
     <canvas class="canvas hidden" id="canvas"></canvas>
-    <people-page :faceData="objectData"></people-page>
+    <people-page
+      :faceData="faceData"
+      :leftHandData="leftHandData"
+      :poseData="poseData"
+      :rightHandData="rightHandData">
+    </people-page>
   </div>
 </template>
 <script>
@@ -17,7 +22,10 @@ export default {
   },
   data() {
     return {
-      objectData: {}
+      faceData: {},
+      leftHandData: {},
+      rightHandData: {},
+      poseData: {},
     }
   },
   mounted() {
@@ -38,16 +46,21 @@ export default {
       drawResults(results)
       // do something with prediction results
       // landmark names may change depending on TFJS/Mediapipe model version
-      let facelm = results.faceLandmarks
-      let poselm = results.poseLandmarks
-      let poselm3D = results.ea
-      let rightHandlm = results.rightHandLandmarks
-      let leftHandlm = results.leftHandLandmarks
+      const facelm = results.faceLandmarks
+      const poselm = results.poseLandmarks
+      const poselm3D = results.ea
+      const rightHandlm = results.rightHandLandmarks
+      const leftHandlm = results.leftHandLandmarks
 
-      let faceRig = Kalidokit.Face.solve(facelm,{runtime:'mediapipe',video:videoElement})
-      let poseRig = Kalidokit.Pose.solve(poselm3D,poselm,{runtime:'mediapipe',video:videoElement})
+      const faceRig = Kalidokit.Face.solve(facelm,{runtime:'mediapipe',video:videoElement})
+      const poseRig = Kalidokit.Pose.solve(poselm3D,poselm,{runtime:'mediapipe',video:videoElement})
+      const riggedLeftHand = Kalidokit.Hand.solve(leftHandlm, 'Left')
+      const riggedRightHand = Kalidokit.Hand.solve(rightHandlm, 'Right')
 
-      this.objectData = structuredClone(faceRig)
+      this.faceData = structuredClone(faceRig)
+      this.poseData = structuredClone(poseRig)
+      this.leftHandData = structuredClone(riggedLeftHand)
+      this.rightHandData = structuredClone(riggedRightHand)
     })
     const camera = new Camera(videoElement, {
       onFrame: async () => {

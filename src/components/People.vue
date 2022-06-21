@@ -13,23 +13,25 @@ import { VRM, VRMSchema, VRMUtils } from '@pixiv/three-vrm'
 import GUI from 'lil-gui'
 import * as Kalidokit from 'kalidokit'
 
-interface FaceObj {
-  head: any
-  eye: { l: number; r: number }
-  mouth: { 
-    shape: { I: number; A: number; E: number; O: number; U: number }
-  }
-  pupil: { y: any; x: any }
-}
-
-
 export default {
   name: 'PeoplePage',
   props: {
     faceData: {
       type: Object,
       default: () => ({})
-    }
+    },
+    leftHandData: {
+      type: Object,
+      default: () => ({})
+    },
+    rightHandData: {
+      type: Object,
+      default: () => ({})
+    },
+    poseData: {
+      type: Object,
+      default: () => ({})
+    },
   },
   setup(props: any) {
     let scene: THREE.Scene
@@ -41,6 +43,8 @@ export default {
     let currentMixer: THREE.AnimationMixer
     let actions: THREE.AnimationAction[] = []
     const clock = new THREE.Clock()
+
+    let positionOffset = { x: 0, y: 1, z: 0}
 
     // const socket = new WebSocket('ws://localhost:28888')
     // socket.onopen = () => {
@@ -291,11 +295,117 @@ export default {
         // vrmPeople?.blendShapeProxy?.setValue( VRMSchema.BlendShapePresetName.A, s)
         // vrmPeople?.blendShapeProxy?.setValue( VRMSchema.BlendShapePresetName.BlinkL, 0.5 - 0.5 * s )
         if (JSON.stringify(props.faceData) !== '{}') {
-          console.log(props.faceData)
-          rigRotation("Neck", props.faceData.head, 0.7);
-          rigFace(<FaceObj>props.faceData)
-          rigRotation
+          rigRotation('Neck', props.faceData.head, 0.7);
+          rigFace(<Kalidokit.TFace>props.faceData)
         }
+        if (JSON.stringify(props.poseData) !== '{}') {
+          rigRotation('Hips', props.poseData.Hips.rotation, 0.7);
+          rigPosition(
+            'Hips',
+            {
+              x: props.poseData.Hips.position.x + positionOffset.x, // Reverse direction
+              y: props.poseData.Hips.position.y + positionOffset.y, // Add a bit of height
+              z: -props.poseData.Hips.position.z + positionOffset.z, // Reverse direction
+            },
+            1,
+            0.07
+          )
+
+          rigRotation('Chest', props.poseData.Spine, 0.25, 0.3)
+          rigRotation('Spine', props.poseData.Spine, 0.45, 0.3)
+
+          rigRotation('RightUpperArm', props.poseData.RightUpperArm)
+          rigRotation('RightLowerArm', props.poseData.RightLowerArm)
+          rigRotation('LeftUpperArm', props.poseData.LeftUpperArm)
+          rigRotation('LeftLowerArm', props.poseData.LeftLowerArm)
+
+          rigRotation('LeftUpperLeg', props.poseData.LeftUpperLeg)
+          rigRotation('LeftLowerLeg', props.poseData.LeftLowerLeg)
+          rigRotation('RightUpperLeg', props.poseData.RightUpperLeg)
+          rigRotation('RightLowerLeg', props.poseData.RightLowerLeg)
+        }
+
+        if (JSON.stringify(props.leftHandData) !== '{}') {
+          rigRotation('LeftHand', {
+              // Combine pose rotation Z and hand rotation X Y
+              x: props.leftHandData.LeftWrist.x,
+              y: props.leftHandData.LeftWrist.y,
+              z: props.poseData.LeftHand.z,
+              rotationOrder: 'XYZ'
+          })
+          rigRotation('LeftRingProximal', props.leftHandData.LeftRingProximal)
+          rigRotation(
+              'LeftRingIntermediate',
+              props.leftHandData.LeftRingIntermediate
+          )
+          rigRotation('LeftRingDistal', props.leftHandData.LeftRingDistal)
+          rigRotation('LeftIndexProximal', props.leftHandData.LeftIndexProximal)
+          rigRotation(
+              'LeftIndexIntermediate',
+              props.leftHandData.LeftIndexIntermediate
+          )
+          rigRotation('LeftIndexDistal', props.leftHandData.LeftIndexDistal)
+          rigRotation('LeftMiddleProximal', props.leftHandData.LeftMiddleProximal)
+          rigRotation(
+              'LeftMiddleIntermediate',
+              props.leftHandData.LeftMiddleIntermediate
+          )
+          rigRotation('LeftMiddleDistal', props.leftHandData.LeftMiddleDistal)
+          rigRotation('LeftThumbProximal', props.leftHandData.LeftThumbProximal)
+          rigRotation(
+              'LeftThumbIntermediate',
+              props.leftHandData.LeftThumbIntermediate
+          )
+          rigRotation('LeftThumbDistal', props.leftHandData.LeftThumbDistal)
+          rigRotation('LeftLittleProximal', props.leftHandData.LeftLittleProximal)
+          rigRotation(
+              'LeftLittleIntermediate',
+              props.leftHandData.LeftLittleIntermediate
+          )
+          rigRotation('LeftLittleDistal', props.leftHandData.LeftLittleDistal)
+        }
+
+        if (JSON.stringify(props.rightHandData) !== '{}') {
+          rigRotation('RightHand', {
+            // Combine Z axis from pose hand and X/Y axis from hand wrist rotation
+            z: props.poseData.RightHand.z,
+            y: props.rightHandData.RightWrist.y,
+            x: props.rightHandData.RightWrist.x,
+            rotationOrder: 'XYZ',
+          })
+          rigRotation('RightRingProximal', props.rightHandData.RightRingProximal)
+          rigRotation(
+              'RightRingIntermediate',
+              props.rightHandData.RightRingIntermediate
+          )
+          rigRotation('RightRingDistal', props.rightHandData.RightRingDistal)
+          rigRotation('RightIndexProximal', props.rightHandData.RightIndexProximal)
+          rigRotation(
+              'RightIndexIntermediate',
+              props.rightHandData.RightIndexIntermediate
+          )
+          rigRotation('RightIndexDistal', props.rightHandData.RightIndexDistal)
+          rigRotation('RightMiddleProximal', props.rightHandData.RightMiddleProximal)
+          rigRotation(
+              'RightMiddleIntermediate',
+              props.rightHandData.RightMiddleIntermediate
+          )
+          rigRotation('RightMiddleDistal', props.rightHandData.RightMiddleDistal)
+          rigRotation('RightThumbProximal', props.rightHandData.RightThumbProximal)
+          rigRotation(
+              'RightThumbIntermediate',
+              props.rightHandData.RightThumbIntermediate
+          )
+          rigRotation('RightThumbDistal', props.rightHandData.RightThumbDistal)
+          rigRotation('RightLittleProximal', props.rightHandData.RightLittleProximal)
+          rigRotation(
+              'RightLittleIntermediate',
+              props.rightHandData.RightLittleIntermediate
+          )
+          rigRotation('RightLittleDistal', props.rightHandData.RightLittleDistal)
+        
+        }
+
         // update vrm
         vrmPeople.update( deltaTime )
 
@@ -331,13 +441,14 @@ export default {
     const clamp = Kalidokit.Utils.clamp
     const lerp = Kalidokit.Vector.lerp
 
-        /**
+    /**
      * 骨骼变动
      */
     const rigRotation = (
         name: keyof typeof VRMSchema.HumanoidBoneName,
         rotation = { x: 0, y: 0, z: 0, rotationOrder: 'XYZ' },
-        dampener = 1
+        dampener = 1,
+        lerpAmount = 0.3
     ) => {
       const Part = vrmPeople?.humanoid?.getBoneNode(VRMSchema.HumanoidBoneName[name])
       let euler = new THREE.Euler(
@@ -347,11 +458,31 @@ export default {
         rotation.rotationOrder
       )
       let quaternion = new THREE.Quaternion().setFromEuler(euler)
-      Part?.quaternion.slerp(quaternion, 1)
+      Part?.quaternion.slerp(quaternion, lerpAmount)
     }
 
-    let oldLookTarget = new THREE.Euler();
-    const rigFace = (riggedFace: FaceObj) => {
+    const rigPosition =  (
+      name: keyof typeof VRMSchema.HumanoidBoneName,
+      position = { x: 0, y: 0, z: 0 },
+      dampener = 1,
+      lerpAmount = 0.3
+    ) => {
+      const Part = vrmPeople?.humanoid?.getBoneNode(
+        VRMSchema.HumanoidBoneName[name]
+      )
+      if (!Part) {
+        return
+      }
+      let vector = new THREE.Vector3(
+        position.x * dampener,
+        position.y * dampener,
+        position.z * dampener
+      )
+      Part.position.lerp(vector, lerpAmount) // interpolate
+    }
+
+    let oldLookTarget = new THREE.Euler()
+    const rigFace = (riggedFace: Kalidokit.TFace) => {
         if (!vrmPeople) {
             return; // face motion only support VRM Now
         }
@@ -433,11 +564,11 @@ export default {
             lerp(oldLookTarget.x, riggedFace.pupil.y, 0.4),
             lerp(oldLookTarget.y, riggedFace.pupil.x, 0.4),
             0,
-            "XYZ"
+            'XYZ'
         );
         oldLookTarget.copy(lookTarget);
         vrmPeople?.lookAt?.applyer?.lookAt(lookTarget);
-    };
+    }
 
     const init = () => {
       addScene()
