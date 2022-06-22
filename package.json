@@ -8,6 +8,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mediapipe/camera_utils": "^0.3.1640029074",
+    "@mediapipe/drawing_utils": "^0.3.1620248257",
+    "@mediapipe/holistic": "^0.5.1635989137",
+    "@pixiv/three-vrm": "^0.6.11",
+    "kalidokit": "^1.1.5",
+    "lil-gui": "^0.16.1",
     "gsap": "^3.10.4",
     "mind-ar": "^1.1.4",
     "three": "^0.138.3",

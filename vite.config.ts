@@ -8,10 +8,10 @@ function pathResolve(dir: string) {
 }
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    vue(),
-    // Inspector()
-  ],
+  plugins: [vue()],
+  server: {
+    host: true
+  },
   resolve: {
     alias: [
       // /@/xxxx => src/xxxx
