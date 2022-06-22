@@ -15,7 +15,7 @@ import * as Kalidokit from 'kalidokit'
 import Holistic  from '@mediapipe/holistic'
 import {Camera} from '@mediapipe/camera_utils'
 import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
-import PeoplePage from './components/People.vue'
+import PeoplePage from '/@/components/People.vue'
 export default {
   name: 'AnimatePeople',
   components: {
@@ -141,6 +141,6 @@ export default {
   height: 800px;
 }
 .hidden {
-  // display: none;
+  display: none;
 }
 </style>

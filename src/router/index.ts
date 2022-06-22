@@ -17,6 +17,11 @@ const basicRoutes: RouteRecordRaw[] = [
     path: '/custom',
     name: 'custom',
     component: () => import('/@/views/Custom.vue')
+  },
+  {
+    path: '/people',
+    name: 'people',
+    component: () => import('/@/views/AnimatePeople.vue')
   }
 ]
 
