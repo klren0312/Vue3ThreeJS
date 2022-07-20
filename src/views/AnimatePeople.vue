@@ -11,6 +11,7 @@
   </div>
 </template>
 <script>
+// 使用js的原因https://github.com/google/mediapipe/issues/3155
 import * as Kalidokit from 'kalidokit'
 import Holistic  from '@mediapipe/holistic'
 import {Camera} from '@mediapipe/camera_utils'
