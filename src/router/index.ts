@@ -22,6 +22,11 @@ const basicRoutes: RouteRecordRaw[] = [
     path: '/people',
     name: 'people',
     component: () => import('/@/views/AnimatePeople.vue')
+  },
+  {
+    path: '/fbx',
+    name: 'fbx',
+    component: () => import('/@/views/FbxPeople.vue')
   }
 ]
 
