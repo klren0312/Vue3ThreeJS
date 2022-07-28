@@ -1,17 +1,17 @@
 <template>
   <div class="main-page">
     <div id="webgl"></div>
-    <iframe class="iframe" src="https://www.ghxi.com/" frameborder="0"></iframe>
+    <div class="iframe"></div>
   </div>
 </template>
 <script lang="ts">
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import * as THREE from 'three'
-import { onMounted } from 'vue'
+import { nextTick, onMounted } from 'vue'
 import { VRM, VRMSchema, VRMUtils } from '@pixiv/three-vrm'
 import GUI from 'lil-gui'
-
+import TypeIt from 'typeit'
 export default {
   setup() {
     let scene: THREE.Scene
@@ -22,6 +22,7 @@ export default {
     let vrmPeople: VRM
     let currentMixer: THREE.AnimationMixer
     const clock = new THREE.Clock()
+    let isTalk: Boolean = false
 
     // 创建场景
     const addScene = () => {
@@ -83,7 +84,34 @@ export default {
 
     const addObjModel = () => {
       const onProgress = (xhr: ProgressEvent<EventTarget>) => {
-        // console.log(xhr)
+        if (xhr.total === xhr.loaded) {
+          setTimeout(() => {
+            isTalk = true
+            new (TypeIt as any)('.iframe', {
+              speed: 90,
+              startDelay: 900,
+              afterComplete: async () => {
+                rigRotation("LeftUpperArm", { x: 0, y: -0, z: 1.25, rotationOrder: 'XYZ' })
+                rigRotation("LeftLowerArm", { x: 0, y: -0, z: 0, rotationOrder: 'XYZ' })
+                vrmPeople?.blendShapeProxy?.setValue( VRMSchema.BlendShapePresetName.A, 1)
+                isTalk = false
+              },
+            })
+              .type('杜富国、聂海胜等被授予八一勋章')
+              .break()
+              .type('上半年服务业发展韧性显现')
+              .break()
+              .type('人民网评：让假期调休更得民心')
+              .break()
+              .type('汽车撞人疑致31伤 肇事者已被控制')
+              .break()
+              .type('日本四名政客跟风窜访台湾')
+              .break()
+              .type('每日优鲜30分钟极速达业务关停').go()
+            rigRotation("LeftUpperArm", { x: 0, y: -0, z: 0.955044166691297, rotationOrder: 'XYZ' })
+            rigRotation("LeftLowerArm", { x: 0, y: -0, z: -1.05557513160617, rotationOrder: 'XYZ' })
+          }, 5000)
+        }
       }
       const onError = (event: ErrorEvent) => {}
       const gltfLoader = new GLTFLoader()
@@ -112,7 +140,8 @@ export default {
           rigRotation("LeftUpperArm", { x: 0, y: -0, z: 1.25, rotationOrder: 'XYZ' })
           rigRotation("LeftLowerArm", { x: 0, y: -0, z: 0, rotationOrder: 'XYZ' })
 
-          prepareAnimation(vrm)
+          // prepareAnimation(vrm)
+
         })
       }, onProgress, onError)
     }
@@ -124,7 +153,6 @@ export default {
         lerpAmount = 0.3
     ) => {
       const Part = vrmPeople?.humanoid?.getBoneNode(VRMSchema.HumanoidBoneName[name])
-            console.log(Part)
       let euler = new THREE.Euler(
         rotation.x * dampener,
         rotation.y * dampener,
@@ -199,7 +227,7 @@ export default {
       // orbitControls.update()
       const deltaTime = clock.getDelta()
 
-      if ( vrmPeople ) {
+      if ( vrmPeople && isTalk) {
 
         // tweak blendshape
         const s = Math.sin( 3 * Math.PI * clock.elapsedTime )
@@ -273,7 +301,8 @@ html {
 }
 .main-page {
   position: relative;
-  background: url(./assets/bg.jpg) center / 100% 100% no-repeat;
+  background: #dfdfdf;
+  // background: url(./assets/bg.jpg) center / 100% 100% no-repeat;
 
   #webgl {
     overflow: hidden;
@@ -285,6 +314,7 @@ html {
     right: 20%;
     width: 50%;
     height: 50%;
+    background: #fff;
   }
 }
 </style>

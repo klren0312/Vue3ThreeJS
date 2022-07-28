@@ -12,6 +12,7 @@
     "@types/three": "^0.138.0",
     "lil-gui": "^0.16.1",
     "three": "^0.138.3",
+    "typeit": "^8.7.0",
     "vue": "^3.2.25"
   },
   "devDependencies": {

@@ -876,6 +876,11 @@ token-stream@1.0.0:
   resolved "https://registry.npmmirror.com/token-stream/-/token-stream-1.0.0.tgz#cc200eab2613f4166d27ff9afc7ca56d49df6eb4"
   integrity sha512-VSsyNPPW74RpHwR8Fc21uubwHY7wMDeJLys2IX5zJNih+OnAnaifKHo+1LHT7DAdloQ7apeaaWg8l7qnf/TnEg==
 
+typeit@^8.7.0:
+  version "8.7.0"
+  resolved "https://mirrors.cloud.tencent.com/npm/typeit/-/typeit-8.7.0.tgz#97f1e62c12543a7df9b9ca2c45cf6d27c050d777"
+  integrity sha512-MeraWJAquZr0EPo2yRYQnSdAxIuzgS5s4JEvzOdp63ZRRpETxtiHYvCJiK4aJA6FuScz3oUJkjmjQsLrx6VOMA==
+
 typescript@^4.5.4:
   version "4.6.2"
   resolved "https://registry.npmmirror.com/typescript/-/typescript-4.6.2.tgz#fe12d2727b708f4eef40f51598b3398baa9611d4"
